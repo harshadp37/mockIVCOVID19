@@ -13,7 +13,7 @@ module.exports.createReport = async (req, res)=>{
         if(!Report.schema.path('status').enumValues.includes(req.body.status)){
             throw new Error("Status value is not valid. Use value from this array : " + Report.schema.path('status').enumValues)
         }
-        
+
         /* GET PATIENT WITH THE HELP OF ID PASSED IN PARAMS */
         const patient = await Patient.findOne({_id: req.params.id});
 
@@ -42,6 +42,20 @@ module.exports.createReport = async (req, res)=>{
 }
 
 /* GET ALL REPORTS OF SPECIFIC PATIENT */
-module.exports.allReports = (req, res)=>{
-    
+module.exports.allReports = async (req, res)=>{
+    try {
+        /* GET PATIENT WITH THE HELP OF ID PASSED IN PARAMS */
+        /* QUERY DESCRIPTION : POPULATED REPORTS, SORT THEM LATEST TO OLDEST, THEN POPULATE DOCTOR & PATIENT OF EACH REPORT */
+        const patient = await Patient.findOne({_id: req.params.id}).populate({path: 'reports', options: {sort: {createdAt: -1}}, populate: [{path: 'createdBy', select: 'name -_id'}, {path: 'relatedTo', select: 'name -_id'}]})
+
+        /* IF PATIENT IS NOT EXISTS THEN THROW NEW ERROR */
+        if(!patient){
+            throw new Error("Patient is Not Found.");
+        }
+        res.json({success: true, Patient_Name: patient.name, reports: patient.reports});
+        
+    } catch (e) {
+        console.error("Error while Fetching reports of patient.");
+        return res.json({success: false, message: "Error while Fetching reports of patient." + e});
+    }
 }
