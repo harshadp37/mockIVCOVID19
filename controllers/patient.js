@@ -27,15 +27,23 @@ module.exports.createReport = async (req, res)=>{
         if(!doctor){
             throw new Error("Doctor is Not Found.");
         }
+
+        /* CREATE NEW REPORT */
         const newReport = await Report.create({
             createdBy: doctor,
             relatedTo: patient,
             status: req.body.status
         })
+
+        /* PUSH NEW REPORT IN PATIENT'S REPORT */
         patient.reports.push(newReport);
         patient.save();
+
+        /* SUCCESS RESPONSE */
         return res.json({success: true, message: "Report Created Successfully!!"});
+
     } catch (e) {
+        /* ERROR RESPONSE */
         console.error("Error while Creating report.");
         return res.json({success: false, message: "Error while creating report." + e});
     }
@@ -52,9 +60,12 @@ module.exports.allReports = async (req, res)=>{
         if(!patient){
             throw new Error("Patient is Not Found.");
         }
+
+        /* SUCCESS RESPONSE */
         res.json({success: true, Patient_Name: patient.name, reports: patient.reports});
         
     } catch (e) {
+        /* ERROR RESPONSE */
         console.error("Error while Fetching reports of patient.");
         return res.json({success: false, message: "Error while Fetching reports of patient." + e});
     }

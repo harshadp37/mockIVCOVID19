@@ -20,16 +20,22 @@ module.exports.register = async (req, res)=>{
             return res.json({success: false, message: "Sorry, Username already taken."});
         }
 
-        /* IF USERNAME NOT EXISTS THEN CREATE HASH FOR PASSWORD & CREATE DOCTOR */
+        /* IF USERNAME NOT EXISTS THEN CREATE HASH FOR PASSWORD */
         const salt = bcrypt.genSaltSync(5);
         const hash = await bcrypt.hashSync(req.body.password, salt);
+
+        /* CREATE DOCTOR */
         await Doctor.create({
             name: req.body.name,
             username: req.body.username,
             password: hash
         })
+
+        /* SUCCESS RESPONSE */
         return res.json({success: true, message: "Doctor Registered Successfully!!"});
+
     } catch (e) {
+        /* ERROR RESPONSE */
         console.error("Error while registering doctor.");
         return res.json({success: false, message: "Error while registering doctor." + e});
     }
@@ -60,8 +66,12 @@ module.exports.login = async (req, res)=>{
 
         /* IF BOTH USERNAME & PASSWORD IS CORRECT THEN CREATE TOKEN & PASS TOKEN IN RESPONSE */
         const token = jwt.sign({_id: doctor._id, username: doctor.username}, config.secretKey , {expiresIn: '12h'});
+        
+        /* SUCCESS RESPONSE */
         return res.json({success: true, message: "Logged In Successfully!!", token: token});
+
     } catch (e) {
+        /* ERROR RESPONSE */
         console.error("Error in login doctor.");
         return res.json({success: false, message: "Error in login doctor." + e});
     }
@@ -87,15 +97,23 @@ module.exports.registerPatient = async (req, res)=>{
         if(!doctor){
             throw new Error("Doctor is Not Found.");
         }
+
+        /* CREATE NEW PATIENT */
         const newPatient = await Patient.create({
             name: req.body.name,
             phoneNumber: req.body.phoneNumber,
             assignedDoctor: req.user
         })
+
+        /* PUSH NEW PATIENT IN DOCTOR'S PATIENTS */
         doctor.patients.push(newPatient);
         doctor.save();
+
+        /* SUCCESS RESPONSE */
         return res.json({success: true, message: "Patient Registered Successfully!!"});
+
     } catch (e) {
+        /* ERROR RESPONSE */
         console.error("Error while registering patient.");
         return res.json({success: false, message: "Error while registering patient." + e});
     }
