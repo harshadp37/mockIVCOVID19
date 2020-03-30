@@ -1,10 +1,12 @@
 const jwt = require('jsonwebtoken');
 const config = require('./../config');
 
+/* AUTHENTICATE DOCTORS WITH THE HELP OF TOKEN GIVEN WHEN LOGGING */
 module.exports.checkToken = (req, res, next)=>{
     if(req.headers.token){
         try {
             const decodedToken = jwt.verify(req.headers.token, config.secretKey);
+            /* SET USER AS DOCTOR */
             req.user = decodedToken._id;
             next();
         } catch (e) {
